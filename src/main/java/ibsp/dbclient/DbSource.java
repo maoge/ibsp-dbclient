@@ -145,11 +145,11 @@ public class DbSource {
 	public static void removeBrokenPool(String id) {
 		DbSource dbsource = DbSource.get();
 		synchronized(mtx) {
-			if (dbsource.validDBMap.contains(id)) {
+			if (dbsource.validDBMap.containsKey(id)) {
 				dbsource.validIdList.remove(id);
 				ConnectionPool connPool = dbsource.validDBMap.remove(id);
 				if (connPool != null) {
-					if (dbsource.invalidDBMap.contains(id)) {
+					if (dbsource.invalidDBMap.containsKey(id)) {
 						return;
 					}
 					
@@ -174,7 +174,7 @@ public class DbSource {
 				dbsource.invalidIdList.remove(id);
 				ConnectionPool connPool = dbsource.invalidDBMap.remove(id);
 				if (connPool != null) {
-					if (dbsource.validDBMap.contains(id))
+					if (dbsource.validDBMap.containsKey(id))
 						return;
 					
 					if (!dbsource.validIdList.contains(id)) {
