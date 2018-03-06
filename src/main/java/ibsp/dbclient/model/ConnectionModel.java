@@ -23,17 +23,15 @@ public class ConnectionModel {
 	private boolean isOpen = false;
 	private String testQuery;
 	
+	private HikariConfig hikariConf = null;
 	private HikariDataSource dataSource = null;
 	
 	public ConnectionModel(String configFile) throws DBException {
 		this.configFile = configFile;
-		initDataSource();
-	}
-	
-	private boolean initDataSource() throws DBException {
+		
 		DbConfig config = new DbConfig(configFile);
 		
-		HikariConfig hikariConf = new HikariConfig();
+		hikariConf = new HikariConfig();
 		hikariConf.setPoolName(config.getId());
 		hikariConf.setDriverClassName(config.getDriver());
 		hikariConf.setJdbcUrl(config.getUrl());
@@ -52,6 +50,10 @@ public class ConnectionModel {
 		
 		testQuery = config.getConnectionTestQuery();
 		
+		initDataSource();
+	}
+	
+	private boolean initDataSource() throws DBException {
 		try {
 			dataSource = new HikariDataSource(hikariConf);
 			isOpen = true;
