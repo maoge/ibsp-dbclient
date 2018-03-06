@@ -2,7 +2,6 @@ package ibsp.dbclient.model;
 
 import ibsp.dbclient.config.DbConfig;
 import ibsp.dbclient.exception.DBException;
-import ibsp.dbclient.exception.DBException.DBERRINFO;
 import ibsp.dbclient.utils.DES3;
 
 import java.beans.PropertyVetoException;
@@ -19,16 +18,13 @@ public class ConnectionModel {
 	
 	private static final Logger logger = LoggerFactory.getLogger(ConnectionModel.class);
 	
-	private String configFile;
 	private boolean isOpen = false;
 	private String testQuery;
 	
 	private HikariConfig hikariConf = null;
 	private HikariDataSource dataSource = null;
 	
-	public ConnectionModel(String configFile) throws DBException {
-		this.configFile = configFile;
-		
+	public ConnectionModel(String configFile) {
 		DbConfig config = new DbConfig(configFile);
 		
 		hikariConf = new HikariConfig();
@@ -53,12 +49,12 @@ public class ConnectionModel {
 		initDataSource();
 	}
 	
-	private boolean initDataSource() throws DBException {
+	private boolean initDataSource() {
 		try {
 			dataSource = new HikariDataSource(hikariConf);
 			isOpen = true;
 		} catch (Exception e) {
-			throw new DBException(e.getMessage(), e, DBERRINFO.e1);
+			logger.error(e.getMessage(), e);
 		}
 		
 		return isOpen;

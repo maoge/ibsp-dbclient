@@ -1,6 +1,5 @@
 package ibsp.dbclient.pool;
 
-import ibsp.dbclient.exception.DBException;
 import ibsp.dbclient.model.ConnectionModel;
 import ibsp.dbclient.utils.CONSTS;
 
@@ -19,7 +18,7 @@ public class DbPoolImpl implements ConnectionPool {
 	private String id;
 	private ConnectionModel model;
 	
-	public DbPoolImpl(String id) throws DBException {
+	public DbPoolImpl(String id) {
 		this.id = id;
 		
 		String configFile = String.format("%s.%s", CONSTS.DBPOOL_PROP_FILE, id);

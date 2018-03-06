@@ -63,18 +63,12 @@ public class DbSource {
 					}
 					
 					for (String id : idSet) {
-						DbPoolImpl connPool = null;
-						try {
-							connPool = new DbPoolImpl(id);
-							
-							if (connPool.check()) {
-								theInstance.validDBMap.put(id, connPool);
-								theInstance.validIdList.add(id);
-							} else {
-								theInstance.invalidDBMap.put(id, connPool);
-								theInstance.invalidIdList.add(id);
-							}
-						} catch (DBException e) {
+						DbPoolImpl connPool = new DbPoolImpl(id);
+
+						if (connPool.check()) {
+							theInstance.validDBMap.put(id, connPool);
+							theInstance.validIdList.add(id);
+						} else {
 							theInstance.invalidDBMap.put(id, connPool);
 							theInstance.invalidIdList.add(id);
 						}
