@@ -1,5 +1,7 @@
 package ibsp.dbclient.pool;
 
+import ibsp.dbclient.DbSource;
+import ibsp.dbclient.exception.DBException;
 import ibsp.dbclient.model.ConnectionModel;
 import ibsp.dbclient.utils.CONSTS;
 
@@ -32,7 +34,15 @@ public class DbPoolImpl implements ConnectionPool {
 	
 	@Override
 	public Connection getConnection() {
-		return model.newConnection();
+		Connection conn = null;
+
+		try {
+			conn = model.getConnection();
+		} catch (DBException e) {
+			DbSource.removeBrokenPool(id);
+		}
+		
+		return conn;
 	}
 
 	@Override

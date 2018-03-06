@@ -232,6 +232,7 @@ public class DbSource {
 				if (size > 0) {
 					String id = dbsource.invalidIdList.get(0);
 					logger.info("DBSource Checking:{} ......", id);
+					System.out.println("DBSource Checking:{} ......" + id);
 					DbPoolImpl connPool = (DbPoolImpl)dbsource.invalidDBMap.get(id);
 					if (connPool.check()) {
 						DbSource.mergeRecoveredPool(id);

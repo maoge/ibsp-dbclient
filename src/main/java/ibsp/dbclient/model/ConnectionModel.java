@@ -2,9 +2,9 @@ package ibsp.dbclient.model;
 
 import ibsp.dbclient.config.DbConfig;
 import ibsp.dbclient.exception.DBException;
+import ibsp.dbclient.exception.DBException.DBERRINFO;
 import ibsp.dbclient.utils.DES3;
 
-import java.beans.PropertyVetoException;
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -60,30 +60,21 @@ public class ConnectionModel {
 		return isOpen;
 	}
 	
-	public Connection getConnection() throws DBException, SQLException, PropertyVetoException {
+	public Connection getConnection() throws DBException {
 		if (dataSource == null) {
 			initDataSource();
 		}
 		
 		Connection conn = null;
 		try {
-		if (dataSource != null) {
-			conn = dataSource.getConnection();
-		}
+			if (dataSource != null) {
+				conn = dataSource.getConnection();
+			}
 		} catch(Exception e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
+			throw new DBException(e.getMessage(), e, DBERRINFO.e2);
 		}
 		
-		return conn;
-	}
-	
-	public Connection newConnection() {
-		Connection conn = null;
-		try {
-			return getConnection();
-		} catch (Exception ex) {
-			logger.error("Can not create a connection to " + dataSource.getJdbcUrl(), ex);
-		}		
 		return conn;
 	}
 	
