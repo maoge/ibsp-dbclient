@@ -1,6 +1,8 @@
 package ibsp.dbclient.model;
 
 import ibsp.dbclient.config.DbConfig;
+import ibsp.dbclient.exception.DBException;
+import ibsp.dbclient.exception.DBException.DBERRINFO;
 import ibsp.dbclient.utils.DES3;
 
 import java.beans.PropertyVetoException;
@@ -23,12 +25,12 @@ public class ConnectionModel {
 	
 	private HikariDataSource dataSource = null;
 	
-	public ConnectionModel(String configFile) {
+	public ConnectionModel(String configFile) throws DBException {
 		this.configFile = configFile;
 		initDataSource();
 	}
 	
-	private boolean initDataSource() {
+	private boolean initDataSource() throws DBException {
 		DbConfig config = new DbConfig(configFile);
 		
 		HikariConfig hikariConf = new HikariConfig();
@@ -49,13 +51,18 @@ public class ConnectionModel {
 		hikariConf.setAutoCommit(config.isAutoCommit());
 		
 		testQuery = config.getConnectionTestQuery();
-		dataSource = new HikariDataSource(hikariConf);
-		isOpen = true;
+		
+		try {
+			dataSource = new HikariDataSource(hikariConf);
+			isOpen = true;
+		} catch (Exception e) {
+			throw new DBException(e.getMessage(), e, DBERRINFO.e1);
+		}
 		
 		return isOpen;
 	}
 	
-	public Connection getConnection() throws SQLException, PropertyVetoException {
+	public Connection getConnection() throws DBException, SQLException, PropertyVetoException {
 		if (dataSource == null) {
 			initDataSource();
 		}
