@@ -71,6 +71,8 @@ public class DbSource {
 						} else {
 							theInstance.invalidDBMap.put(id, connPool);
 							theInstance.invalidIdList.add(id);
+							
+							startChecker();
 						}
 					}
 				}
@@ -168,7 +170,7 @@ public class DbSource {
 	public static void mergeRecoveredPool(String id) {
 		DbSource dbsource = DbSource.get();
 		synchronized(mtx) {
-			if (dbsource.invalidDBMap.contains(id)) {
+			if (dbsource.invalidDBMap.containsKey(id)) {
 				dbsource.invalidIdList.remove(id);
 				ConnectionPool connPool = dbsource.invalidDBMap.remove(id);
 				if (connPool != null) {
