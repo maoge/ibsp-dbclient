@@ -228,11 +228,9 @@ public class DbSource {
 			
 			while (running) {
 				DbSource dbsource = DbSource.get();
-				int size = dbsource.invalidDBMap.size();
-				if (size > 0) {
-					String id = dbsource.invalidIdList.get(0);
+				for (int i=0; i<dbsource.invalidIdList.size(); i++) {
+					String id = dbsource.invalidIdList.get(i);
 					logger.info("DBSource Checking:{} ......", id);
-					System.out.println("DBSource Checking:{} ......" + id);
 					DbPoolImpl connPool = (DbPoolImpl)dbsource.invalidDBMap.get(id);
 					if (connPool.check()) {
 						DbSource.mergeRecoveredPool(id);
