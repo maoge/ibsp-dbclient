@@ -1,57 +1,87 @@
 package ibsp.dbclient.config;
 
+import ibsp.dbclient.utils.CONSTS;
 import ibsp.dbclient.utils.PropertiesUtils;
 
 public class DbConfig {
 	
-	private String configFile;
+	private static DbConfig instance = null;
+	private static Object mtx = null;
 	
-	public DbConfig(String configFile) {
-		this.configFile = configFile;
-		
-		id = PropertiesUtils.getInstance(configFile).get("id");
-		driver = PropertiesUtils.getInstance(configFile).get("driver");
-		url = PropertiesUtils.getInstance(configFile).get("url");
-		username = PropertiesUtils.getInstance(configFile).get("username");
-		password = PropertiesUtils.getInstance(configFile).get("password");
-		
-		maxPoolSize = PropertiesUtils.getInstance(configFile).getInt("maxPoolSize", 10);
-		minPoolSize = PropertiesUtils.getInstance(configFile).getInt("minPoolSize", 1);
-		initPoolSize = PropertiesUtils.getInstance(configFile).getInt("initPoolSize", 5);
-		maxIdleTime = PropertiesUtils.getInstance(configFile).getInt("maxIdleTime", 10*60*1000);
-		maxLifetime = PropertiesUtils.getInstance(configFile).getInt("maxLifetime", 60*60*1000);  // 连接能存活的绝对时间
-		connectionTimeout = PropertiesUtils.getInstance(configFile).getInt("connectionTimeout", 3000);  // 连接能存活的绝对时间
-		validationTimeout = PropertiesUtils.getInstance(configFile).getInt("validationTimeout", 5000);
-		idleConnectionTestPeriod = PropertiesUtils.getInstance(configFile).getInt("idleConnectionTestPeriod", 60000);
+	private String metaSvrRootUrl;
+	private String serviceID;
 	
-		isAutoCommit = PropertiesUtils.getInstance(configFile).getBoolean("isAutoCommit", false);
-		connectionTestQuery = PropertiesUtils.getInstance(configFile).get("connectionTestQuery", "select 1 from dual");
-	}
-
-	private String id;
 	private String driver;
-	private String url;
+	private String dbName;
+	private String dbProperties; //something like characterEncoding=utf8&useSSL=true
 	private String username;
 	private String password;
-	private String connectionTestQuery;
-	
+
 	private int maxPoolSize = 10;
 	private int minPoolSize = 1;
 	private int initPoolSize = 5;
 	private int connectionTimeout = 3000;
 	private int maxIdleTime = 10*60*1000;
-	private int maxLifetime = 60*60*1000;  // 连接能存活的绝对时间
+	private int maxLifetime = 60*60*1000;
 	private int validationTimeout = 5*1000;
 	private int idleConnectionTestPeriod = 60*1000;
 	
 	private boolean isAutoCommit = false;
+	private String connectionTestQuery = "select 1 from dual";
 	
-	public String getId() {
-		return id;
+	static {
+		mtx = new Object();
+	}
+	
+	public static DbConfig get() {
+		if (instance != null)
+			return instance;
+		
+		synchronized(mtx) {
+			if (instance == null) {
+				instance = new DbConfig();
+			}
+			
+			return instance;
+		}
+	}
+	
+	public DbConfig() {
+		this.metaSvrRootUrl = PropertiesUtils.getInstance(CONSTS.INIT_PROP_FILE).get("metasvr.rooturl");
+		this.serviceID      = PropertiesUtils.getInstance(CONSTS.INIT_PROP_FILE).get("service.id");
+		
+		this.driver         = PropertiesUtils.getInstance(CONSTS.INIT_PROP_FILE).get("driver");
+		this.dbName         = PropertiesUtils.getInstance(CONSTS.INIT_PROP_FILE).get("db.name");
+		this.dbProperties   = PropertiesUtils.getInstance(CONSTS.INIT_PROP_FILE).get("db.properties", "");
+		this.username       = PropertiesUtils.getInstance(CONSTS.INIT_PROP_FILE).get("username");
+		this.password       = PropertiesUtils.getInstance(CONSTS.INIT_PROP_FILE).get("password");
+		
+		this.maxPoolSize 	= PropertiesUtils.getInstance(CONSTS.INIT_PROP_FILE).getInt("maxPoolSize", 10);
+		this.minPoolSize 	= PropertiesUtils.getInstance(CONSTS.INIT_PROP_FILE).getInt("minPoolSize", 1);
+		this.initPoolSize 	= PropertiesUtils.getInstance(CONSTS.INIT_PROP_FILE).getInt("initPoolSize", 5);
+		this.maxIdleTime 	= PropertiesUtils.getInstance(CONSTS.INIT_PROP_FILE).getInt("maxIdleTime", 10*60*1000);
+		this.maxLifetime 	= PropertiesUtils.getInstance(CONSTS.INIT_PROP_FILE).getInt("maxLifetime", 60*60*1000);
+		this.connectionTimeout = PropertiesUtils.getInstance(CONSTS.INIT_PROP_FILE).getInt("connectionTimeout", 3000);
+		this.validationTimeout = PropertiesUtils.getInstance(CONSTS.INIT_PROP_FILE).getInt("validationTimeout", 5000);
+		this.idleConnectionTestPeriod = PropertiesUtils.getInstance(CONSTS.INIT_PROP_FILE).getInt("idleConnectionTestPeriod", 60000);
+		this.isAutoCommit = PropertiesUtils.getInstance(CONSTS.INIT_PROP_FILE).getBoolean("isAutoCommit", false);
+		this.connectionTestQuery = PropertiesUtils.getInstance(CONSTS.INIT_PROP_FILE).get("connectionTestQuery", "select 1 from dual");
 	}
 
-	public void setId(String id) {
-		this.id = id;
+	public String getMetaSvrRootUrl() {
+		return metaSvrRootUrl;
+	}
+
+	public void setMetaSvrRootUrl(String metaSvrRootUrl) {
+		this.metaSvrRootUrl = metaSvrRootUrl;
+	}
+
+	public String getServiceID() {
+		return serviceID;
+	}
+
+	public void setServiceID(String serviceID) {
+		this.serviceID = serviceID;
 	}
 
 	public String getDriver() {
@@ -62,12 +92,20 @@ public class DbConfig {
 		this.driver = driver;
 	}
 
-	public String getUrl() {
-		return url;
+	public String getDbName() {
+		return dbName;
 	}
 
-	public void setUrl(String url) {
-		this.url = url;
+	public void setDbName(String dbName) {
+		this.dbName = dbName;
+	}
+
+	public String getDbProperties() {
+		return dbProperties;
+	}
+
+	public void setDbProperties(String dbProperties) {
+		this.dbProperties = dbProperties;
 	}
 
 	public String getUsername() {
@@ -110,6 +148,14 @@ public class DbConfig {
 		this.initPoolSize = initPoolSize;
 	}
 
+	public int getConnectionTimeout() {
+		return connectionTimeout;
+	}
+
+	public void setConnectionTimeout(int connectionTimeout) {
+		this.connectionTimeout = connectionTimeout;
+	}
+
 	public int getMaxIdleTime() {
 		return maxIdleTime;
 	}
@@ -146,16 +192,8 @@ public class DbConfig {
 		return isAutoCommit;
 	}
 
-	public void setAutoCommit(boolean autoCommit) {
-		this.isAutoCommit = autoCommit;
-	}
-
-	public String getConfigFile() {
-		return configFile;
-	}
-
-	public void setConfigFile(String configFile) {
-		this.configFile = configFile;
+	public void setAutoCommit(boolean isAutoCommit) {
+		this.isAutoCommit = isAutoCommit;
 	}
 
 	public String getConnectionTestQuery() {
@@ -165,13 +203,5 @@ public class DbConfig {
 	public void setConnectionTestQuery(String connectionTestQuery) {
 		this.connectionTestQuery = connectionTestQuery;
 	}
-
-	public int getConnectionTimeout() {
-		return connectionTimeout;
-	}
-
-	public void setConnectionTimeout(int connectionTimeout) {
-		this.connectionTimeout = connectionTimeout;
-	}
-
+	
 }

@@ -3,7 +3,6 @@ package ibsp.dbclient.pool;
 import ibsp.dbclient.DbSource;
 import ibsp.dbclient.exception.DBException;
 import ibsp.dbclient.model.ConnectionModel;
-import ibsp.dbclient.utils.CONSTS;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -20,11 +19,9 @@ public class DbPoolImpl implements ConnectionPool {
 	private String id;
 	private ConnectionModel model;
 	
-	public DbPoolImpl(String id) {
+	public DbPoolImpl(String id, String address) {
 		this.id = id;
-		
-		String configFile = String.format("%s.%s", CONSTS.DBPOOL_PROP_FILE, id);
-		this.model = new ConnectionModel(configFile);
+		this.model = new ConnectionModel(id, address);
 	}
 
 	@Override
@@ -39,7 +36,10 @@ public class DbPoolImpl implements ConnectionPool {
 		try {
 			conn = model.getConnection();
 		} catch (DBException e) {
-			DbSource.removeBrokenPool(id);
+			//no DBException will be thrown out here
+			try {
+				DbSource.removeBrokenPool(id);
+			} catch (DBException e1) {}
 		}
 		
 		return conn;

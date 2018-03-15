@@ -1,14 +1,16 @@
 package ibsp.dbclient;
 
+import ibsp.dbclient.config.DbConfig;
+import ibsp.dbclient.config.MetaserverUrlConfig;
 import ibsp.dbclient.exception.DBException;
 import ibsp.dbclient.exception.DBException.DBERRINFO;
 import ibsp.dbclient.pool.ConnectionPool;
 import ibsp.dbclient.pool.DbPoolImpl;
 import ibsp.dbclient.utils.CONSTS;
-import ibsp.dbclient.utils.DbProperties;
+import ibsp.dbclient.utils.HttpUtils;
+import ibsp.dbclient.utils.SVarObject;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -16,6 +18,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.alibaba.fastjson.JSONObject;
 
 public class DbSource {
 	
@@ -36,14 +40,18 @@ public class DbSource {
 	
 	private static long DBPOOL_RECONNECT_INTERVAL = 1000L;
 	
+	private static MetaserverUrlConfig metaUrls; //metaserver address
+	
+	
 	public DbSource() {
 		validDBMap = new ConcurrentHashMap<String, ConnectionPool>();
 		invalidDBMap = new ConcurrentHashMap<String, ConnectionPool>();
 		validIdList = new ArrayList<String>();
 		invalidIdList = new ArrayList<String>();
+		metaUrls = new MetaserverUrlConfig();
 	}
 	
-	public static DbSource get() {
+	public static DbSource get() throws DBException {
 		if (theInstance != null) {
 			return theInstance;
 		}
@@ -52,28 +60,52 @@ public class DbSource {
 			if (theInstance == null) {
 				theInstance = new DbSource();
 				
-				String dbSourceIDs = DbProperties.get().getDbSourceIds();
-				String[] ids = dbSourceIDs.split(CONSTS.PATH_COMMA);
-				if (ids == null || ids.length == 0) {
-					logger.error("datasource is null!");
+				//process metaserver addresses
+				String rootUrls = DbConfig.get().getMetaSvrRootUrl();
+				if (rootUrls == null || rootUrls.isEmpty()) {
+					throw new DBException("metaserver url is empty!", new Throwable(), DBERRINFO.e1);
 				} else {
-					Set<String> idSet = new HashSet<String>();
-					for (String id : ids) {
-						idSet.add(id);
+					String[] urls = rootUrls.split(CONSTS.PATH_COMMA);
+					for (String url : urls) {
+						String httpUrl = String.format("%s://%s", CONSTS.HTTP_PROTOCAL, url.trim());
+						metaUrls.putInvalidUrl(httpUrl);
 					}
-					
-					for (String id : idSet) {
-						DbPoolImpl connPool = new DbPoolImpl(id);
+					metaUrls.doUrlCheck();
+				}
 
-						if (connPool.check()) {
-							theInstance.validDBMap.put(id, connPool);
-							theInstance.validIdList.add(id);
-						} else {
-							theInstance.invalidDBMap.put(id, connPool);
-							theInstance.invalidIdList.add(id);
+				//process tidb addresses
+				String[] dbAddress = null;
+				String serviceID = DbConfig.get().getServiceID();
+				if (serviceID==null || serviceID.isEmpty()) {
+					throw new DBException("serviceID is empty!", new Throwable(), DBERRINFO.e1);
+				}
+				String initUrl = String.format("%s/%s/%s?%s", metaUrls.getNextUrl(), 
+						CONSTS.TIDB_SERVICE, CONSTS.FUN_GET_ADDRESS, "SERV_ID="+DbConfig.get().getServiceID());
+				SVarObject sVarInvoke = new SVarObject();
+				boolean retInvoke = HttpUtils.getData(initUrl, sVarInvoke);
+				if (retInvoke) {
+					JSONObject jsonObj = JSONObject.parseObject(sVarInvoke.getVal());
+					if (jsonObj.getIntValue(CONSTS.JSON_HEADER_RET_CODE) == CONSTS.REVOKE_OK) {
+						dbAddress = jsonObj.getString(CONSTS.JSON_HEADER_RET_INFO).split(CONSTS.PATH_COMMA);
+					}
+				}
+				if (dbAddress==null || dbAddress.length==0) {
+					throw new DBException("TIDB address url is empty!", new Throwable(), DBERRINFO.e1);
+				}
+				
+				//init hikari pools
+				for (int i=0; i<dbAddress.length; i++) {
+					String id = "TIDB"+(i+1);
+					DbPoolImpl connPool = new DbPoolImpl(id, dbAddress[i]);
+
+					if (connPool.check()) {
+						theInstance.validDBMap.put(id, connPool);
+						theInstance.validIdList.add(id);
+					} else {
+						theInstance.invalidDBMap.put(id, connPool);
+						theInstance.invalidIdList.add(id);
 							
-							startChecker();
-						}
+						startChecker();
 					}
 				}
 			}
@@ -98,7 +130,7 @@ public class DbSource {
 		return connPool;
 	}
 	
-	public static void close() {
+	public static void close() throws DBException {
 		isCheckerRunning = false;
 		stopChecker();
 		
@@ -142,7 +174,7 @@ public class DbSource {
 		}
 	}
 	
-	public static void removeBrokenPool(String id) {
+	public static void removeBrokenPool(String id) throws DBException {
 		DbSource dbsource = DbSource.get();
 		synchronized(mtx) {
 			if (dbsource.validDBMap.containsKey(id)) {
@@ -167,7 +199,7 @@ public class DbSource {
 		}
 	}
 	
-	public static void mergeRecoveredPool(String id) {
+	public static void mergeRecoveredPool(String id) throws DBException {
 		DbSource dbsource = DbSource.get();
 		synchronized(mtx) {
 			if (dbsource.invalidDBMap.containsKey(id)) {
@@ -227,14 +259,18 @@ public class DbSource {
 			running = true;
 			
 			while (running) {
-				DbSource dbsource = DbSource.get();
-				for (int i=0; i<dbsource.invalidIdList.size(); i++) {
-					String id = dbsource.invalidIdList.get(i);
-					logger.info("DBSource Checking:{} ......", id);
-					DbPoolImpl connPool = (DbPoolImpl)dbsource.invalidDBMap.get(id);
-					if (connPool.check()) {
-						DbSource.mergeRecoveredPool(id);
+				try {
+					DbSource dbsource = DbSource.get();
+					for (int i=0; i<dbsource.invalidIdList.size(); i++) {
+						String id = dbsource.invalidIdList.get(i);
+						logger.info("DBSource Checking:{} ......", id);
+						DbPoolImpl connPool = (DbPoolImpl)dbsource.invalidDBMap.get(id);
+						if (connPool.check()) {
+							DbSource.mergeRecoveredPool(id);
+						}
 					}
+				} catch (Exception e) {
+					logger.warn("DBSource check error...", e);
 				}
 				
 				try {
