@@ -1,7 +1,7 @@
 package ibsp.dbclient;
 
 import ibsp.dbclient.config.DbConfig;
-import ibsp.dbclient.config.MetaserverUrlConfig;
+import ibsp.dbclient.config.MetasvrUrlConfig;
 import ibsp.dbclient.exception.DBException;
 import ibsp.dbclient.exception.DBException.DBERRINFO;
 import ibsp.dbclient.pool.ConnectionPool;
@@ -40,7 +40,7 @@ public class DbSource {
 	
 	private static long DBPOOL_RECONNECT_INTERVAL = 1000L;
 	
-	private static MetaserverUrlConfig metaUrls; //metaserver address
+	private static MetasvrUrlConfig metaUrls; //metaserver address
 	
 	
 	public DbSource() {
@@ -48,7 +48,6 @@ public class DbSource {
 		invalidDBMap = new ConcurrentHashMap<String, ConnectionPool>();
 		validIdList = new ArrayList<String>();
 		invalidIdList = new ArrayList<String>();
-		metaUrls = new MetaserverUrlConfig();
 	}
 	
 	public static DbSource get() throws DBException {
@@ -62,16 +61,7 @@ public class DbSource {
 				
 				//process metaserver addresses
 				String rootUrls = DbConfig.get().getMetaSvrRootUrl();
-				if (rootUrls == null || rootUrls.isEmpty()) {
-					throw new DBException("metaserver url is empty!", new Throwable(), DBERRINFO.e1);
-				} else {
-					String[] urls = rootUrls.split(CONSTS.PATH_COMMA);
-					for (String url : urls) {
-						String httpUrl = String.format("%s://%s", CONSTS.HTTP_PROTOCAL, url.trim());
-						metaUrls.putInvalidUrl(httpUrl);
-					}
-					metaUrls.doUrlCheck();
-				}
+				metaUrls = new MetasvrUrlConfig(rootUrls);
 
 				//process tidb addresses
 				String[] dbAddress = null;

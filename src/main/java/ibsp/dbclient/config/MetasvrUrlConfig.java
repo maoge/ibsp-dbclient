@@ -13,9 +13,9 @@ import ibsp.dbclient.utils.HttpUtils;
 import ibsp.dbclient.utils.SVarObject;
 
 
-public class MetaserverUrlConfig {
+public class MetasvrUrlConfig {
 	
-	private static Logger logger = LoggerFactory.getLogger(MetaserverUrlConfig.class);
+	private static Logger logger = LoggerFactory.getLogger(MetasvrUrlConfig.class);
 
 	private Vector<String> valildUrlVec;
 	private Vector<String> invalildUrlVec;
@@ -30,7 +30,7 @@ public class MetaserverUrlConfig {
 	
 	private ReentrantLock lock;
 
-	public MetaserverUrlConfig() {
+	public MetasvrUrlConfig(String metasvrUrl) {
 		valildUrlVec   = new Vector<String>();
 		invalildUrlVec = new Vector<String>();
 		validSize      = 0;
@@ -38,25 +38,16 @@ public class MetaserverUrlConfig {
 		lastIndex      = 0L;
 		isCheckerRunning = false;
 		lock           = new ReentrantLock();
-	}
-	
-	public void putValidUrl(String url) {
-		try {
-			lock.lock();
-			valildUrlVec.add(url);
-			validSize++;
-		} finally {
-			lock.unlock();
-		}
-	}
-	
-	public void putInvalidUrl(String url) {
-		try {
-			lock.lock();
-			invalildUrlVec.add(url);
+		
+		String[] urls = metasvrUrl.split(CONSTS.PATH_COMMA);
+		for (String url : urls) {
+			String httpUrl = String.format("%s://%s", CONSTS.HTTP_PROTOCAL, url.trim());
+			invalildUrlVec.add(httpUrl);
 			invalidSize++;
-		} finally {
-			lock.unlock();
+		}
+		this.doUrlCheck();
+		if (invalidSize > 0) {
+			startChecker();
 		}
 	}
 	
@@ -132,9 +123,6 @@ public class MetaserverUrlConfig {
 			}
 			if (invalidSize == 0) { 
 				stopChecker();
-			} else {
-				//chekcer is not started when metaserver address is initializing
-				startChecker();
 			}
 		} catch (Exception e) {
 			logger.warn("Check metaserver error...", e);
