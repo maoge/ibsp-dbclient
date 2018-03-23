@@ -39,7 +39,7 @@ public class MetasvrUrlConfig {
 		isCheckerRunning = false;
 		lock           = new ReentrantLock();
 		
-		String[] urls = metasvrUrl.split(CONSTS.PATH_COMMA);
+		String[] urls = metasvrUrl.split(",");
 		for (String url : urls) {
 			String httpUrl = String.format("%s://%s", CONSTS.HTTP_PROTOCAL, url.trim());
 			invalildUrlVec.add(httpUrl);

@@ -4,7 +4,6 @@ public class CONSTS {
 
 	public static final String DBPOOL_PROP_FILE        = "conf/dbpool";
 	public static final String INIT_PROP_FILE          = "conf/init";
-	public static final String PATH_COMMA              = ",";
 	
 	public static final String META_SERVICE            = "metasvr";
 	public static final String TIDB_SERVICE            = "tidbsvr";

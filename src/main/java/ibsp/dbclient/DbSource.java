@@ -76,7 +76,7 @@ public class DbSource {
 				if (retInvoke) {
 					JSONObject jsonObj = JSONObject.parseObject(sVarInvoke.getVal());
 					if (jsonObj.getIntValue(CONSTS.JSON_HEADER_RET_CODE) == CONSTS.REVOKE_OK) {
-						dbAddress = jsonObj.getString(CONSTS.JSON_HEADER_RET_INFO).split(CONSTS.PATH_COMMA);
+						dbAddress = jsonObj.getString(CONSTS.JSON_HEADER_RET_INFO).split(",");
 					}
 				}
 				if (dbAddress==null || dbAddress.length==0) {
