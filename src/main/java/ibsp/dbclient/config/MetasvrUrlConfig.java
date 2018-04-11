@@ -51,6 +51,10 @@ public class MetasvrUrlConfig {
 		}
 	}
 	
+	public void close() {
+		this.stopChecker();
+	}
+	
 	public void mergeRecovered(int idx) {
 		try {
 			lock.lock();

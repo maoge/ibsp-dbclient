@@ -38,7 +38,7 @@ public class DbPoolImpl implements ConnectionPool {
 		} catch (DBException e) {
 			//no DBException will be thrown out here
 			try {
-				DbSource.removeBrokenPool(id);
+				DbSource.get().removeBrokenPool(id);
 			} catch (DBException e1) {}
 		}
 		

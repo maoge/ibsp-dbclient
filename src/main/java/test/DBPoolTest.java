@@ -44,7 +44,7 @@ public class DBPoolTest {
 		Connection conn = null;
 		
 		try {
-			pool = DbSource.getPool();
+			pool = DbSource.get().getPool();
 			if (pool == null) {
 				System.out.println("connection pool get null!");
 				return false;
@@ -88,7 +88,7 @@ public class DBPoolTest {
 		Connection conn = null;
 		
 		try {
-			pool = DbSource.getPool();
+			pool = DbSource.get().getPool();
 			if (pool == null) {
 				System.out.println("connection pool get null!");
 				return false;
@@ -136,7 +136,7 @@ public class DBPoolTest {
 		Connection conn = null;
 		
 		try {
-			pool = DbSource.getPool();
+			pool = DbSource.get().getPool();
 			if (pool == null) {
 				System.out.println("connection pool get null!");
 				return false;
@@ -212,7 +212,7 @@ public class DBPoolTest {
 		Connection conn = null;
 		
 		try {
-			pool = DbSource.getPool();
+			pool = DbSource.get().getPool();
 			if (pool == null) {
 				System.out.println("connection pool get null!");
 				return false;
@@ -260,7 +260,7 @@ public class DBPoolTest {
 		Connection conn = null;
 		
 		try {
-			pool = DbSource.getPool();
+			pool = DbSource.get().getPool();
 			if (pool == null) {
 				System.out.println("connection pool get null!");
 				return false;
@@ -307,7 +307,7 @@ public class DBPoolTest {
 		Connection conn = null;
 		
 		try {
-			pool = DbSource.getPool();
+			pool = DbSource.get().getPool();
 			if (pool == null) {
 				System.out.println("connection pool get null!");
 				return false;

@@ -1,17 +1,16 @@
 package ibsp.dbclient;
 
 import ibsp.dbclient.config.DbConfig;
-import ibsp.dbclient.config.MetasvrUrlConfig;
+import ibsp.dbclient.config.MetasvrConfigFactory;
+import ibsp.dbclient.event.EventController;
 import ibsp.dbclient.exception.DBException;
 import ibsp.dbclient.exception.DBException.DBERRINFO;
 import ibsp.dbclient.pool.ConnectionPool;
 import ibsp.dbclient.pool.DbPoolImpl;
-import ibsp.dbclient.utils.CONSTS;
-import ibsp.dbclient.utils.HttpUtils;
-import ibsp.dbclient.utils.SVarObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,36 +18,25 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.fastjson.JSONObject;
-
 public class DbSource {
 	
 	private static Logger logger = LoggerFactory.getLogger(DbSource.class);
 
 	private static DbSource theInstance = null;
-	
 	private static Object mtx = new Object();
+	
 	private ConcurrentHashMap<String, ConnectionPool> validDBMap = null;
 	private ConcurrentHashMap<String, ConnectionPool> invalidDBMap = null;
 	private List<String> validIdList;
 	private List<String> invalidIdList;
 	private long index = 0L;
 	
-	private static Thread checkThread = null;
-	private static DBPoolRecoveryChecker checker = null;
-	private static volatile boolean isCheckerRunning = false;
+	private Thread checkThread = null;
+	private DBPoolRecoveryChecker checker = null;
+	private volatile boolean isCheckerRunning = false;
 	
 	private static long DBPOOL_RECONNECT_INTERVAL = 1000L;
-	
-	private static MetasvrUrlConfig metaUrls; //metaserver address
-	
-	
-	public DbSource() {
-		validDBMap = new ConcurrentHashMap<String, ConnectionPool>();
-		invalidDBMap = new ConcurrentHashMap<String, ConnectionPool>();
-		validIdList = new ArrayList<String>();
-		invalidIdList = new ArrayList<String>();
-	}
+
 	
 	public static DbSource get() throws DBException {
 		if (theInstance != null) {
@@ -58,73 +46,36 @@ public class DbSource {
 		synchronized(mtx) {
 			if (theInstance == null) {
 				theInstance = new DbSource();
-				
-				//process metaserver addresses
-				String rootUrls = DbConfig.get().getMetaSvrRootUrl();
-				metaUrls = new MetasvrUrlConfig(rootUrls);
-
-				//process tidb addresses
-				String[] dbAddress = null;
-				String serviceID = DbConfig.get().getServiceID();
-				if (serviceID==null || serviceID.isEmpty()) {
-					throw new DBException("serviceID is empty!", new Throwable(), DBERRINFO.e1);
-				}
-				String initUrl = String.format("%s/%s/%s?%s", metaUrls.getNextUrl(), 
-						CONSTS.TIDB_SERVICE, CONSTS.FUN_GET_ADDRESS, "SERV_ID="+DbConfig.get().getServiceID());
-				SVarObject sVarInvoke = new SVarObject();
-				boolean retInvoke = HttpUtils.getData(initUrl, sVarInvoke);
-				if (retInvoke) {
-					JSONObject jsonObj = JSONObject.parseObject(sVarInvoke.getVal());
-					if (jsonObj.getIntValue(CONSTS.JSON_HEADER_RET_CODE) == CONSTS.REVOKE_OK) {
-						dbAddress = jsonObj.getString(CONSTS.JSON_HEADER_RET_INFO).split(",");
-					}
-				}
-				if (dbAddress==null || dbAddress.length==0) {
-					throw new DBException("TIDB address url is empty!", new Throwable(), DBERRINFO.e1);
-				}
-				
-				//init hikari pools
-				for (int i=0; i<dbAddress.length; i++) {
-					String id = "TIDB"+(i+1);
-					DbPoolImpl connPool = new DbPoolImpl(id, dbAddress[i]);
-
-					if (connPool.check()) {
-						theInstance.validDBMap.put(id, connPool);
-						theInstance.validIdList.add(id);
-					} else {
-						theInstance.invalidDBMap.put(id, connPool);
-						theInstance.invalidIdList.add(id);
-							
-						startChecker();
-					}
-				}
 			}
 		}
 		
 		return theInstance;
 	}
-	
-	public static ConnectionPool getPool() throws DBException {
-		DbSource dbsource = DbSource.get();
-		if (dbsource.validIdList.size() == 0) {
-			throw new DBException("db source is empty", new Throwable(), DBERRINFO.e1);
+
+	public DbSource() throws DBException {
+		validDBMap = new ConcurrentHashMap<String, ConnectionPool>();
+		invalidDBMap = new ConcurrentHashMap<String, ConnectionPool>();
+		validIdList = new ArrayList<String>();
+		invalidIdList = new ArrayList<String>();
+		
+		String rootUrls = DbConfig.get().getMetaSvrRootUrl();
+		MetasvrConfigFactory config = MetasvrConfigFactory.getInstance(rootUrls);
+		
+		//init hikari pools
+		Map<String, String> dbAddress = config.getDbAddress();
+		Set<Entry<String, String>> entrySet = dbAddress.entrySet();
+		for (Entry<String, String> entry : entrySet) {
+			this.addPool(entry.getKey(), entry.getValue());
 		}
 		
-		ConnectionPool connPool = null;
-		synchronized(mtx) {
-			int seed = (int) (dbsource.index++ % dbsource.validIdList.size());
-			String id = dbsource.validIdList.get(seed);
-			connPool = dbsource.validDBMap.get(id);
-		}
-		
-		return connPool;
+		EventController.getInstance();
 	}
 	
-	public static void close() throws DBException {
+	public void close() {
 		isCheckerRunning = false;
 		stopChecker();
 		
-		DbSource dbsource = DbSource.get();
+		DbSource dbsource = theInstance;
 		synchronized(mtx) {
 			if (dbsource.validDBMap != null) {
 				Set<Entry<String, ConnectionPool>> entrySet = dbsource.validDBMap.entrySet();
@@ -164,8 +115,24 @@ public class DbSource {
 		}
 	}
 	
-	public static void removeBrokenPool(String id) throws DBException {
-		DbSource dbsource = DbSource.get();
+	public ConnectionPool getPool() throws DBException {
+		DbSource dbsource = theInstance;
+		if (dbsource.validIdList.size() == 0) {
+			throw new DBException("db source is empty", new Throwable(), DBERRINFO.e1);
+		}
+		
+		ConnectionPool connPool = null;
+		synchronized(mtx) {
+			int seed = (int) (dbsource.index++ % dbsource.validIdList.size());
+			String id = dbsource.validIdList.get(seed);
+			connPool = dbsource.validDBMap.get(id);
+		}
+		
+		return connPool;
+	}
+	
+	public void removeBrokenPool(String id) {
+		DbSource dbsource = theInstance;
 		synchronized(mtx) {
 			if (dbsource.validDBMap.containsKey(id)) {
 				dbsource.validIdList.remove(id);
@@ -189,8 +156,8 @@ public class DbSource {
 		}
 	}
 	
-	public static void mergeRecoveredPool(String id) throws DBException {
-		DbSource dbsource = DbSource.get();
+	public void mergeRecoveredPool(String id) {
+		DbSource dbsource = theInstance;
 		synchronized(mtx) {
 			if (dbsource.invalidDBMap.containsKey(id)) {
 				dbsource.invalidIdList.remove(id);
@@ -213,7 +180,45 @@ public class DbSource {
 		}
 	}
 	
-	public static void startChecker() {
+	public void addPool(String id, String address) {
+		DbPoolImpl connPool = new DbPoolImpl(id, address);
+		System.out.println("Create pool to "+address);
+		
+		if (connPool.check()) {
+			synchronized(mtx) {
+				this.validDBMap.put(id, connPool);
+				this.validIdList.add(id);
+			}
+		} else {
+			synchronized(mtx) {
+				this.invalidDBMap.put(id, connPool);
+				this.invalidIdList.add(id);
+			}
+			startChecker();
+		}
+	}
+	
+	public void removePool(String id) throws Exception {
+		System.out.println("Remove pool to "+id);
+		ConnectionPool pool = null;
+		synchronized(mtx) {
+			if (this.validIdList.contains(id)) {
+				pool = this.validDBMap.get(id);
+				this.validDBMap.remove(id);
+				this.validIdList.remove(id);
+			} else if (this.invalidIdList.contains(id)) {
+				pool = this.invalidDBMap.get(id);
+				this.invalidDBMap.remove(id);
+				this.invalidIdList.remove(id);
+			}
+		}
+		if (pool != null) {
+			pool.close();
+		}
+	}
+	
+	
+	private void startChecker() {
 		if (isCheckerRunning)
 			return;
 		
@@ -223,7 +228,7 @@ public class DbSource {
 		checkThread.start();
 	}
 	
-	public static void stopChecker() {
+	private void stopChecker() {
 		if (!isCheckerRunning)
 			return;
 		
@@ -256,7 +261,7 @@ public class DbSource {
 						logger.info("DBSource Checking:{} ......", id);
 						DbPoolImpl connPool = (DbPoolImpl)dbsource.invalidDBMap.get(id);
 						if (connPool.check()) {
-							DbSource.mergeRecoveredPool(id);
+							DbSource.get().mergeRecoveredPool(id);
 						}
 					}
 				} catch (Exception e) {
