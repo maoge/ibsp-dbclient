@@ -57,7 +57,7 @@
 			<manifest>
 				<attribute name="Main-Class" value=""/>
 				<attribute name="Manifest-Version" value="${version}"/>
-				<attribute name="Class-Path" value="resource/conf"/>
+				<attribute name="Conf-Path" value="resource/conf"/>
 			</manifest>
 		</jar>
 
