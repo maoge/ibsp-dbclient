@@ -9,6 +9,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import javax.sql.DataSource;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +45,14 @@ public class DbPoolImpl implements ConnectionPool {
 		}
 		
 		return conn;
+	}
+	
+	@Override
+	public DataSource getDataSource() {
+		if (model == null)
+			return null;
+		
+		return model.getDataSource();
 	}
 
 	@Override

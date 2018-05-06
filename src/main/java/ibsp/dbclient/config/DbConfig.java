@@ -1,9 +1,14 @@
 package ibsp.dbclient.config;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ibsp.dbclient.utils.CONSTS;
 import ibsp.dbclient.utils.PropertiesUtils;
 
 public class DbConfig {
+	
+	private static Logger logger = LoggerFactory.getLogger(DbConfig.class);
 	
 	private static DbConfig instance = null;
 	private static Object mtx = null;
@@ -11,7 +16,7 @@ public class DbConfig {
 	private String metaSvrRootUrl;
 	private String serviceID;
 	
-	private String driver;
+	private String driver = "com.mysql.jdbc.Driver";
 	private String dbName;
 	private String dbProperties; //something like characterEncoding=utf8&useSSL=true
 	private String username;
@@ -47,6 +52,14 @@ public class DbConfig {
 	}
 	
 	public DbConfig() {
+		PropertiesUtils prop = null;
+		try {
+			prop = PropertiesUtils.getInstance(CONSTS.INIT_PROP_FILE);
+		} catch (Exception e) {
+			logger.error("load property file:{} error!", CONSTS.INIT_PROP_FILE);
+			return;
+		}
+		
 		this.metaSvrRootUrl = PropertiesUtils.getInstance(CONSTS.INIT_PROP_FILE).get("metasvr.rooturl");
 		this.serviceID      = PropertiesUtils.getInstance(CONSTS.INIT_PROP_FILE).get("service.id");
 		

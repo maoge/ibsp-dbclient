@@ -2,6 +2,8 @@ package ibsp.dbclient.pool;
 
 import java.sql.Connection;
 
+import javax.sql.DataSource;
+
 public interface ConnectionPool extends AutoCloseable {
 
 	/**
@@ -9,6 +11,12 @@ public interface ConnectionPool extends AutoCloseable {
 	 * @return
 	 */
 	public Connection getConnection();
+	
+	/**
+	 * 暴漏出DataSource,便于和iBatis集成
+	 * @return
+	 */
+	public DataSource getDataSource();
 	
 	/**
 	 * 归还数据库连�?

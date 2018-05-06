@@ -15,6 +15,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.sql.DataSource;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -116,19 +118,26 @@ public class DbSource {
 	}
 	
 	public ConnectionPool getPool() throws DBException {
-		DbSource dbsource = theInstance;
-		if (dbsource.validIdList.size() == 0) {
+		if (validIdList.size() == 0) {
 			throw new DBException("db source is empty", new Throwable(), DBERRINFO.e1);
 		}
 		
 		ConnectionPool connPool = null;
 		synchronized(mtx) {
-			int seed = (int) (dbsource.index++ % dbsource.validIdList.size());
-			String id = dbsource.validIdList.get(seed);
-			connPool = dbsource.validDBMap.get(id);
+			int seed = (int) (index++ % validIdList.size());
+			String id = validIdList.get(seed);
+			connPool = validDBMap.get(id);
 		}
 		
 		return connPool;
+	}
+	
+	public DataSource getDataSource() throws DBException {
+		ConnectionPool connPool = getPool();
+		if (connPool == null)
+			return null;
+		
+		return connPool.getDataSource();
 	}
 	
 	public void removeBrokenPool(String id) {

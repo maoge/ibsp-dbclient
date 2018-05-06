@@ -9,6 +9,8 @@ import ibsp.dbclient.utils.DES3;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+import javax.sql.DataSource;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,6 +83,10 @@ public class ConnectionModel {
 		}
 		
 		return conn;
+	}
+	
+	public DataSource getDataSource() {
+		return dataSource;
 	}
 	
 	public String getTestQuery() {
