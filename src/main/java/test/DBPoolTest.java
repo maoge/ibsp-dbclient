@@ -33,8 +33,8 @@ public class DBPoolTest {
 			boolean drop = testDrop();
 			assert drop : isError("drop fail");
 			
-			DbSource.get().close();
 			EventController.getInstance().shutdown();
+			DbSource.get().close();
 			
 		} catch (Exception e) {
 			e.printStackTrace();

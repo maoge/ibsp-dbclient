@@ -60,25 +60,25 @@ public class DbConfig {
 			return;
 		}
 		
-		this.metaSvrRootUrl = PropertiesUtils.getInstance(CONSTS.INIT_PROP_FILE).get("metasvr.rooturl");
-		this.serviceID      = PropertiesUtils.getInstance(CONSTS.INIT_PROP_FILE).get("service.id");
+		this.metaSvrRootUrl = prop.get("metasvr.rooturl");
+		this.serviceID      = prop.get("service.id");
 		
-		this.driver         = PropertiesUtils.getInstance(CONSTS.INIT_PROP_FILE).get("driver");
-		this.dbName         = PropertiesUtils.getInstance(CONSTS.INIT_PROP_FILE).get("db.name");
-		this.dbProperties   = PropertiesUtils.getInstance(CONSTS.INIT_PROP_FILE).get("db.properties", "");
-		this.username       = PropertiesUtils.getInstance(CONSTS.INIT_PROP_FILE).get("username");
-		this.password       = PropertiesUtils.getInstance(CONSTS.INIT_PROP_FILE).get("password");
+		this.driver         = prop.get("driver");
+		this.dbName         = prop.get("db.name");
+		this.dbProperties   = prop.get("db.properties", "");
+		this.username       = prop.get("username");
+		this.password       = prop.get("password");
 		
-		this.maxPoolSize 	= PropertiesUtils.getInstance(CONSTS.INIT_PROP_FILE).getInt("maxPoolSize", 10);
-		this.minPoolSize 	= PropertiesUtils.getInstance(CONSTS.INIT_PROP_FILE).getInt("minPoolSize", 1);
-		this.initPoolSize 	= PropertiesUtils.getInstance(CONSTS.INIT_PROP_FILE).getInt("initPoolSize", 5);
-		this.maxIdleTime 	= PropertiesUtils.getInstance(CONSTS.INIT_PROP_FILE).getInt("maxIdleTime", 10*60*1000);
-		this.maxLifetime 	= PropertiesUtils.getInstance(CONSTS.INIT_PROP_FILE).getInt("maxLifetime", 60*60*1000);
-		this.connectionTimeout = PropertiesUtils.getInstance(CONSTS.INIT_PROP_FILE).getInt("connectionTimeout", 3000);
-		this.validationTimeout = PropertiesUtils.getInstance(CONSTS.INIT_PROP_FILE).getInt("validationTimeout", 5000);
-		this.idleConnectionTestPeriod = PropertiesUtils.getInstance(CONSTS.INIT_PROP_FILE).getInt("idleConnectionTestPeriod", 60000);
-		this.isAutoCommit = PropertiesUtils.getInstance(CONSTS.INIT_PROP_FILE).getBoolean("isAutoCommit", false);
-		this.connectionTestQuery = PropertiesUtils.getInstance(CONSTS.INIT_PROP_FILE).get("connectionTestQuery", "select 1 from dual");
+		this.maxPoolSize 	= prop.getInt("maxPoolSize", 10);
+		this.minPoolSize 	= prop.getInt("minPoolSize", 1);
+		this.initPoolSize 	= prop.getInt("initPoolSize", 5);
+		this.maxIdleTime 	= prop.getInt("maxIdleTime", 10*60*1000);
+		this.maxLifetime 	= prop.getInt("maxLifetime", 60*60*1000);
+		this.connectionTimeout = prop.getInt("connectionTimeout", 3000);
+		this.validationTimeout = prop.getInt("validationTimeout", 5000);
+		this.idleConnectionTestPeriod = prop.getInt("idleConnectionTestPeriod", 60000);
+		this.isAutoCommit = prop.getBoolean("isAutoCommit", false);
+		this.connectionTestQuery = prop.get("connectionTestQuery", "select 1 from dual");
 	}
 
 	public String getMetaSvrRootUrl() {
