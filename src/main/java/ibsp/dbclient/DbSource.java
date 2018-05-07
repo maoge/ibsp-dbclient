@@ -114,6 +114,8 @@ public class DbSource {
 			
 			dbsource.invalidIdList.clear();
 			dbsource.invalidDBMap.clear();
+			
+			dbsource = null;
 		}
 	}
 	
@@ -234,6 +236,8 @@ public class DbSource {
 		isCheckerRunning = true;
 		checker = new DBPoolRecoveryChecker();
 		checkThread = new Thread(checker);
+		checkThread.setName("DBPoolRecoveryChecker Thread");
+		checkThread.setDaemon(true);
 		checkThread.start();
 	}
 	

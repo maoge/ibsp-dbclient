@@ -126,7 +126,7 @@ public class EventController {
 			
 			timerEventThread = new Thread(timerEventRunner);
 			timerEventThread.setDaemon(true);
-			timerEventThread.setName("Router.TimerEventThread");
+			timerEventThread.setName("EventController.TimerEventThread");
 			timerEventThread.start();
 			
 			isTimerRunnerInited = true;

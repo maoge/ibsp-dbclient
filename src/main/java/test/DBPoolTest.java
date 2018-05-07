@@ -7,6 +7,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
 import ibsp.dbclient.DbSource;
+import ibsp.dbclient.event.EventController;
 import ibsp.dbclient.exception.DBException;
 import ibsp.dbclient.pool.ConnectionPool;
 
@@ -31,6 +32,9 @@ public class DBPoolTest {
 			
 			boolean drop = testDrop();
 			assert drop : isError("drop fail");
+			
+			DbSource.get().close();
+			EventController.getInstance().shutdown();
 			
 		} catch (Exception e) {
 			e.printStackTrace();
