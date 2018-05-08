@@ -56,7 +56,7 @@ public class DbConfig {
 		try {
 			prop = PropertiesUtils.getInstance(CONSTS.INIT_PROP_FILE);
 		} catch (Exception e) {
-			logger.error("load property file:{} error!", CONSTS.INIT_PROP_FILE);
+			logger.warn("load property file:{} error!", CONSTS.INIT_PROP_FILE);
 			return;
 		}
 		

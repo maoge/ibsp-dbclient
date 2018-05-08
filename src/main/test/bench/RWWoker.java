@@ -3,13 +3,15 @@ package bench;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.Date;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicLong;
 
 import ibsp.dbclient.DbSource;
 import ibsp.dbclient.pool.ConnectionPool;
 import ibsp.dbclient.utils.PropertiesUtils;
 
-public class RWWoker extends RunnerSkeleton implements Runnable {
+public class RWWoker extends RunnerSkeleton {
 	
 	private static final String INS_SQL = "insert T_SMSGATEWAY_MT(submit_id,msg_id,cust_id,chan_id,task_id,"
 																+ "charge_fee,charge_num,dest_addr,src_addr,msg_content,"
@@ -77,7 +79,8 @@ public class RWWoker extends RunnerSkeleton implements Runnable {
 		LONG_MSG_CONTENT = new String(longContent);
 	}
 	
-	public RWWoker(PropertiesUtils prop) {
+	public RWWoker(AtomicLong normalCnt, AtomicLong errorCnt, PropertiesUtils prop) {
+		super(normalCnt, errorCnt);
 		initOPSeedMap(prop);
 	}
 	
@@ -86,7 +89,7 @@ public class RWWoker extends RunnerSkeleton implements Runnable {
 		String[] arr = rwRatio.split(":");
 		int readWeight  = Integer.valueOf(arr[0]);
 		int writeWeight = Integer.valueOf(arr[1]);
-		readBoundary = readWeight;
+		readBoundary = (readWeight > 0) ? readWeight : -1;
 		rwSeedCnt = readWeight + writeWeight;
 		rwRand = new Random(System.currentTimeMillis());
 		
@@ -98,24 +101,20 @@ public class RWWoker extends RunnerSkeleton implements Runnable {
 		shortLongMsgSeedCnt = shortMsgWeight + longMsgWeight;
 		slRand = new Random(System.currentTimeMillis() + 37);
 	}
-
-	@Override
-	public void run() {
-		while (isRunning()) {
-			int seed = rwRand.nextInt(rwSeedCnt);
-			boolean ret = false;
-			if (seed < readBoundary) {
-				ret = doRead(msgId);
-			} else {
-				ret = doWrite();
-			}
-			
-			if (ret) {
-				
-			}
-		}
-	}
 	
+	@Override
+	public boolean doWork() {
+		int seed = rwRand.nextInt(rwSeedCnt);
+		boolean ret = false;
+		if (seed < readBoundary) {
+			ret = doRead(msgId);
+		} else {
+			ret = doWrite();
+		}
+		
+		return ret;
+	}
+
 	private boolean doRead(String msgId) {
 		boolean ret = false;
 		boolean needRecycle = false;
@@ -208,10 +207,10 @@ public class RWWoker extends RunnerSkeleton implements Runnable {
 			ps.setObject(12, "service_id");            // service_id          VARCHAR(30),
 			ps.setObject(13, "fee_terminal_id");       // fee_terminal_id     VARCHAR(32),
 			ps.setObject(14, "link_id");               // link_id             VARCHAR(50),
-			ps.setObject(15, ts);                      // insert_time         TIMESTAMP(3) not null,
+			ps.setObject(15, new Date(ts));            // insert_time         TIMESTAMP(3) not null,
 			ps.setObject(16, null);                    // submit_time         TIMESTAMP(3),
 			ps.setObject(17, 1);                       // status              TINYINT(1) default 0,
-			ps.setObject(18, "chan_status");           // chan_status         VARCHAR(10),
+			ps.setObject(18, "chan_stat");             // chan_status         VARCHAR(10),
 			ps.setObject(19, "chan_note");             // chan_note           VARCHAR(100),
 			ps.setObject(20, "valid_time");            // valid_time          VARCHAR(17),
 			ps.setObject(21, "at_time");               // at_time             VARCHAR(17),

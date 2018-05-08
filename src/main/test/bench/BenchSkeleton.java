@@ -1,5 +1,7 @@
 package bench;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -13,11 +15,14 @@ public class BenchSkeleton {
 	private static AtomicLong[] errorCntVec;
 	private static AtomicLong maxTPS;
 	
-	private static void startTest(PropertiesUtils prop) throws InstantiationException, IllegalAccessException, InterruptedException {
+	private static void startTest(PropertiesUtils prop)
+			throws InstantiationException, IllegalAccessException, InterruptedException, NoSuchMethodException,
+			SecurityException, IllegalArgumentException, InvocationTargetException {
+		
 		String flag        = prop.get("flag");
 		String workerClazz = prop.get("worker.class");
 		int    totalTime   = prop.getInt("totalTime");
-		int    paralle     = prop.getInt("totalTime");
+		int    paralle     = prop.getInt("paralle");
 		
 		Class<?> clazz = null;
 		try {
@@ -55,8 +60,10 @@ public class BenchSkeleton {
 		// start bench worker
 		for (int idx = 0; idx < paralle; idx++) {
 			String name = String.format("bench_worker_%d", idx);
-			Runnable runner = (Runnable)clazz.newInstance();
-			Thread t = new Thread(runner);
+			Constructor<?> constructor = clazz.getConstructor(AtomicLong.class, AtomicLong.class, PropertiesUtils.class);
+			Object runner = constructor.newInstance(normalCntVec[idx], errorCntVec[idx], prop);
+			
+			Thread t = new Thread((Runnable)runner);
 			t.setDaemon(true);
 			t.setName(name);
 			t.start();

@@ -39,11 +39,6 @@
 	</target>
 
 	<target name="copy">
-		<copy todir="${build.dir}" overwrite="true">
-			<fileset dir="${resource.dir}">
-				<include name="**/*.*" />
-			</fileset>
-		</copy>
 	</target>
 
 	<target name="makejar" depends="build">		
