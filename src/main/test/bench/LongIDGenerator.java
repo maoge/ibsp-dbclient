@@ -1,4 +1,4 @@
-package test;
+package bench;
 
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;

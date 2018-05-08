@@ -1,4 +1,4 @@
-package test;
+package bench;
 
 public abstract class RunnerSkeleton {
 	
