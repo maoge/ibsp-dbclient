@@ -2,8 +2,24 @@ package ibsp.dbclient.utils;
 
 public class CONSTS {
 
-	public static final String DBPOOL_PROP_FILE        = "conf/dbpool";
-	public static final String INIT_PROP_FILE          = "conf/init";
+	public static final String INIT_PROP_FILE          = "ibsp";
+	public static final String METASVR_ROOTURL         = "metasvr.rooturl";
+	public static final String DB_SERVICE_ID           = "db.service.id";
+	public static final String DB_DRIVER               = "db.driver";
+	public static final String DB_NAME                 = "db.name";
+	public static final String DB_PROPS                = "db.properties";
+	public static final String DB_USERNAME             = "db.username";
+	public static final String DB_PWD                  = "db.password";
+	public static final String DB_MAX_POOL_SIZE        = "db.maxPoolSize";
+	public static final String DB_MIN_POOL_SIZE        = "db.minPoolSize";
+	public static final String DB_INIT_POOL_SIZE       = "db.initPoolSize";
+	public static final String DB_MAX_IDLE_TIME        = "db.maxIdleTime";
+	public static final String DB_MAX_LIFE_TIME        = "db.maxLifetime";
+	public static final String DB_CONN_TIMEOUT         = "db.connectionTimeout";
+	public static final String DB_VALIDATION_TIMEOUT   = "db.validationTimeout";
+	public static final String DB_IDLE_CONN_TEST_PERIOD= "db.idleConnectionTestPeriod";
+	public static final String DB_IS_AUTO_COMMIT       = "db.isAutoCommit";
+	public static final String DB_CONN_TEST_QUERY      = "db.connectionTestQuery";
 	
 	public static final String META_SERVICE            = "metasvr";
 	public static final String TIDB_SERVICE            = "tidbsvr";

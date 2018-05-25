@@ -60,25 +60,25 @@ public class DbConfig {
 			return;
 		}
 		
-		this.metaSvrRootUrl = prop.get("metasvr.rooturl");
-		this.serviceID      = prop.get("service.id");
+		this.metaSvrRootUrl = prop.get(CONSTS.METASVR_ROOTURL);
+		this.serviceID      = prop.get(CONSTS.DB_SERVICE_ID);
 		
-		this.driver         = prop.get("driver");
-		this.dbName         = prop.get("db.name");
-		this.dbProperties   = prop.get("db.properties", "");
-		this.username       = prop.get("username");
-		this.password       = prop.get("password");
+		this.driver         = prop.get(CONSTS.DB_DRIVER);
+		this.dbName         = prop.get(CONSTS.DB_NAME);
+		this.dbProperties   = prop.get(CONSTS.DB_PROPS, "");
+		this.username       = prop.get(CONSTS.DB_USERNAME, "");
+		this.password       = prop.get(CONSTS.DB_PWD, "");
 		
-		this.maxPoolSize 	= prop.getInt("maxPoolSize", 10);
-		this.minPoolSize 	= prop.getInt("minPoolSize", 1);
-		this.initPoolSize 	= prop.getInt("initPoolSize", 5);
-		this.maxIdleTime 	= prop.getInt("maxIdleTime", 10*60*1000);
-		this.maxLifetime 	= prop.getInt("maxLifetime", 60*60*1000);
-		this.connectionTimeout = prop.getInt("connectionTimeout", 3000);
-		this.validationTimeout = prop.getInt("validationTimeout", 5000);
-		this.idleConnectionTestPeriod = prop.getInt("idleConnectionTestPeriod", 60000);
-		this.isAutoCommit = prop.getBoolean("isAutoCommit", false);
-		this.connectionTestQuery = prop.get("connectionTestQuery", "select 1 from dual");
+		this.maxPoolSize 	= prop.getInt(CONSTS.DB_MAX_POOL_SIZE, 10);
+		this.minPoolSize 	= prop.getInt(CONSTS.DB_MIN_POOL_SIZE, 1);
+		this.initPoolSize 	= prop.getInt(CONSTS.DB_INIT_POOL_SIZE, 5);
+		this.maxIdleTime 	= prop.getInt(CONSTS.DB_MAX_IDLE_TIME, 10*60*1000);
+		this.maxLifetime 	= prop.getInt(CONSTS.DB_MAX_LIFE_TIME, 60*60*1000);
+		this.connectionTimeout = prop.getInt(CONSTS.DB_CONN_TIMEOUT, 3000);
+		this.validationTimeout = prop.getInt(CONSTS.DB_VALIDATION_TIMEOUT, 5000);
+		this.idleConnectionTestPeriod = prop.getInt(CONSTS.DB_IDLE_CONN_TEST_PERIOD, 60000);
+		this.isAutoCommit = prop.getBoolean(CONSTS.DB_IS_AUTO_COMMIT, false);
+		this.connectionTestQuery = prop.get(CONSTS.DB_CONN_TEST_QUERY, "select 1 from dual");
 	}
 
 	public String getMetaSvrRootUrl() {
