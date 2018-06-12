@@ -136,11 +136,8 @@ public class PropertiesUtils {
 		Properties props = System.getProperties();
 		String separator = props.getProperty("file.separator");
 		File rootDir = new File("").getAbsoluteFile();
-		File binDir = new File("./bin").getAbsoluteFile();
-		File confDir = new File("./conf").getAbsoluteFile();
 
 		String nameStr = null;
-
 		if ((fileName.contains(".")) && (fileName.endsWith(".properties"))) {
 			nameStr = fileName;
 		} else {
@@ -148,9 +145,9 @@ public class PropertiesUtils {
 		}
 
 		String _rootNameStr = rootDir + separator + nameStr;
-		String _binNameStr = binDir + separator + nameStr;
-		String _confNameStr = confDir + separator + nameStr;
-
+		String _binNameStr = rootDir + separator + "bin" + separator + nameStr;
+		String _confNameStr = rootDir + separator + "conf" + separator + nameStr;
+		
 		if (new File(_rootNameStr).exists())
 			return _rootNameStr;
 		if (new File(_binNameStr).exists())
@@ -158,7 +155,32 @@ public class PropertiesUtils {
 		if (new File(_confNameStr).exists()) {
 			return _confNameStr;
 		}
-
+		
+		// 找不到则按classpath找
+		ClassLoader cl = Thread.currentThread().getContextClassLoader();
+		java.net.URL fromRoot = cl.getResource(nameStr);
+		java.net.URL fromBin = cl.getResource("bin");
+		java.net.URL fromConf = cl.getResource("conf");
+		if (fromRoot != null) {
+			return fromRoot.getPath();
+		}
+		
+		if (fromBin != null) {
+			String base = fromBin.getFile();
+			File file = new File(base + separator + nameStr);
+			if (file != null) {
+				return file.getPath();
+			}
+		}
+		
+		if (fromConf != null) {
+			String base = fromConf.getFile();
+			File file = new File(base + separator + nameStr);
+			if (file != null) {
+				return file.getPath();
+			}
+		}
+		
 		return nameStr;
 	}
 	
