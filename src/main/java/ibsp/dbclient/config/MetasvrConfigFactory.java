@@ -10,23 +10,26 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
+import ibsp.common.events.EventController;
+import ibsp.common.events.EventSubscriber;
+import ibsp.common.events.EventType;
+import ibsp.common.utils.CONSTS;
+import ibsp.common.utils.HttpUtils;
+import ibsp.common.utils.MetasvrUrlConfig;
+import ibsp.common.utils.SVarObject;
 import ibsp.dbclient.DbSource;
 import ibsp.dbclient.exception.DBException;
 import ibsp.dbclient.exception.DBException.DBERRINFO;
-import ibsp.dbclient.utils.CONSTS;
-import ibsp.dbclient.utils.HttpUtils;
-import ibsp.dbclient.utils.SVarObject;
 
 /***
  * 从metaserver获得配置信息, 以单例模式对外提供使用 
  */
-public class MetasvrConfigFactory {
+public class MetasvrConfigFactory implements EventSubscriber {
 	
 	private static Logger logger = LoggerFactory.getLogger(MetasvrConfigFactory.class);
 	private static final ReentrantLock monitor = new ReentrantLock();
 	private static MetasvrConfigFactory instance = null;
 	
-	private MetasvrUrlConfig metasvrUrl; //metaserver address
 	private Map<String, String> dbAddress;
 
 	public static MetasvrConfigFactory getInstance() {
@@ -46,7 +49,9 @@ public class MetasvrConfigFactory {
 	}
 	
 	private MetasvrConfigFactory(String url) throws DBException {
-		this.metasvrUrl = new MetasvrUrlConfig(url);
+		MetasvrUrlConfig.init(url);
+		EventController.getInstance().subscribe(CONSTS.TYPE_DB_CLIENT, this);
+		
 		this.dbAddress = new HashMap<String, String>();
 		
 		//process tidb addresses
@@ -54,7 +59,7 @@ public class MetasvrConfigFactory {
 		if (serviceID==null || serviceID.isEmpty()) {
 			throw new DBException("serviceID is empty!", new Throwable(), DBERRINFO.e1);
 		}
-		String initUrl = String.format("%s/%s/%s?%s", metasvrUrl.getNextUrl(), 
+		String initUrl = String.format("%s/%s/%s?%s", MetasvrUrlConfig.get().getNextUrl(), 
 				CONSTS.TIDB_SERVICE, CONSTS.FUN_GET_ADDRESS, "SERV_ID="+DbConfig.get().getServiceID());
 		SVarObject sVarInvoke = new SVarObject();
 		boolean retInvoke = HttpUtils.getData(initUrl, sVarInvoke);
@@ -73,23 +78,31 @@ public class MetasvrConfigFactory {
 		}
 	}
 	
-	public String getMetasvrUrl() {
-		return metasvrUrl.getNextUrl();
-	}
-	
-	public void putBrokenUrl(String url) {
-		metasvrUrl.putBrokenUrl(url);
-	}
-	
-	public void doUrlCheck() {
-		metasvrUrl.doUrlCheck();
-	}
-	
 	public Map<String, String> getDbAddress() {
 		return this.dbAddress;
 	}
 	
-	public void addDbAddress(String servID, String instID, String address) {
+	@Override
+	public void postEvent(JSONObject event) {
+		int code = event.getInteger(CONSTS.EV_CODE);
+		String servID = event.getString(CONSTS.EV_SERV_ID);
+		String jsonStr = event.getString(CONSTS.EV_JSON_STR);
+		JSONObject obj = JSONObject.parseObject(jsonStr);
+		
+		switch (EventType.get(code)) {
+		case e71:
+			addDbAddress(servID, obj.getString("INST_ID"), obj.getString("INST_ADD"));
+			break;
+		case e72:
+			removeDbAddress(servID, obj.getString("INST_ID"));
+			break;
+		default:
+			break;
+		}
+		
+	}
+	
+	private void addDbAddress(String servID, String instID, String address) {
 		if (servID.equals(DbConfig.get().getServiceID())) {
 			this.dbAddress.put(instID, address);
 			try {
@@ -100,7 +113,7 @@ public class MetasvrConfigFactory {
 		}
 	}
 	
-	public void removeDbAddress(String servID, String instID) {
+	private void removeDbAddress(String servID, String instID) {
 		if (servID.equals(DbConfig.get().getServiceID())) {
 			this.dbAddress.remove(instID);
 			try {
@@ -112,9 +125,15 @@ public class MetasvrConfigFactory {
 	}
 
 	public synchronized void close() {
-		metasvrUrl.close();
+		// unsubscribe and stop event controller
+		EventController.getInstance().unsubscribe(CONSTS.TYPE_CACHE_CLIENT);
+		EventController.getInstance().shutdown();
+		
+		MetasvrUrlConfig.get().close();
+		
 		if (instance!=null) {
 			instance = null;
 		}
 	}
+
 }

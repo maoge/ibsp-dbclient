@@ -7,9 +7,9 @@ import java.util.Date;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
 
+import ibsp.common.utils.PropertiesUtils;
 import ibsp.dbclient.DbSource;
 import ibsp.dbclient.pool.ConnectionPool;
-import ibsp.dbclient.utils.PropertiesUtils;
 
 public class RWWoker extends RunnerSkeleton {
 	

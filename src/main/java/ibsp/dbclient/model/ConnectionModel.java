@@ -1,10 +1,10 @@
 package ibsp.dbclient.model;
 
+import ibsp.common.utils.CONSTS;
+import ibsp.common.utils.DES3;
 import ibsp.dbclient.config.DbConfig;
 import ibsp.dbclient.exception.DBException;
 import ibsp.dbclient.exception.DBException.DBERRINFO;
-import ibsp.dbclient.utils.CONSTS;
-import ibsp.dbclient.utils.DES3;
 
 import java.sql.Connection;
 import java.sql.SQLException;

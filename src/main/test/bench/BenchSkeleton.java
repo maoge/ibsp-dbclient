@@ -5,7 +5,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicLong;
 
-import ibsp.dbclient.utils.PropertiesUtils;
+import ibsp.common.utils.PropertiesUtils;
 
 public class BenchSkeleton {
 	

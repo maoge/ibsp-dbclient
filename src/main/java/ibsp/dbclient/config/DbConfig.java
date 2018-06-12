@@ -3,8 +3,8 @@ package ibsp.dbclient.config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ibsp.dbclient.utils.CONSTS;
-import ibsp.dbclient.utils.PropertiesUtils;
+import ibsp.common.utils.CONSTS;
+import ibsp.common.utils.PropertiesUtils;
 
 public class DbConfig {
 	

@@ -2,7 +2,6 @@ package ibsp.dbclient;
 
 import ibsp.dbclient.config.DbConfig;
 import ibsp.dbclient.config.MetasvrConfigFactory;
-import ibsp.dbclient.event.EventController;
 import ibsp.dbclient.exception.DBException;
 import ibsp.dbclient.exception.DBException.DBERRINFO;
 import ibsp.dbclient.pool.ConnectionPool;
@@ -69,8 +68,6 @@ public class DbSource {
 		for (Entry<String, String> entry : entrySet) {
 			this.addPool(entry.getKey(), entry.getValue());
 		}
-		
-		EventController.getInstance();
 	}
 	
 	public void close() {
