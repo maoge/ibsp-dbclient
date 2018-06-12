@@ -156,7 +156,7 @@ public class PropertiesUtils {
 			return _confNameStr;
 		}
 		
-		// 找不到则按classpath找
+		// 找不到则按ClassLoader找
 		ClassLoader cl = Thread.currentThread().getContextClassLoader();
 		java.net.URL fromRoot = cl.getResource(nameStr);
 		java.net.URL fromBin = cl.getResource("bin");
