@@ -15,6 +15,7 @@ import ibsp.common.events.EventSubscriber;
 import ibsp.common.events.EventType;
 import ibsp.common.utils.CONSTS;
 import ibsp.common.utils.HttpUtils;
+import ibsp.common.utils.IBSPConfig;
 import ibsp.common.utils.MetasvrUrlConfig;
 import ibsp.common.utils.SVarObject;
 import ibsp.dbclient.DbSource;
@@ -55,12 +56,12 @@ public class MetasvrConfigFactory implements EventSubscriber {
 		this.dbAddress = new HashMap<String, String>();
 		
 		//process tidb addresses
-		String serviceID = DbConfig.get().getServiceID();
+		String serviceID = IBSPConfig.getInstance().getDbServiceID();
 		if (serviceID==null || serviceID.isEmpty()) {
 			throw new DBException("serviceID is empty!", new Throwable(), DBERRINFO.e1);
 		}
 		String initUrl = String.format("%s/%s/%s?%s", MetasvrUrlConfig.get().getNextUrl(), 
-				CONSTS.TIDB_SERVICE, CONSTS.FUN_GET_ADDRESS, "SERV_ID="+DbConfig.get().getServiceID());
+				CONSTS.TIDB_SERVICE, CONSTS.FUN_GET_ADDRESS, "SERV_ID=" + serviceID);
 		SVarObject sVarInvoke = new SVarObject();
 		boolean retInvoke = HttpUtils.getData(initUrl, sVarInvoke);
 		if (retInvoke) {
@@ -99,11 +100,10 @@ public class MetasvrConfigFactory implements EventSubscriber {
 		default:
 			break;
 		}
-		
 	}
 	
 	private void addDbAddress(String servID, String instID, String address) {
-		if (servID.equals(DbConfig.get().getServiceID())) {
+		if (servID.equals(IBSPConfig.getInstance().getDbServiceID())) {
 			this.dbAddress.put(instID, address);
 			try {
 				DbSource.get().addPool(instID, address);
@@ -114,7 +114,7 @@ public class MetasvrConfigFactory implements EventSubscriber {
 	}
 	
 	private void removeDbAddress(String servID, String instID) {
-		if (servID.equals(DbConfig.get().getServiceID())) {
+		if (servID.equals(IBSPConfig.getInstance().getDbServiceID())) {
 			this.dbAddress.remove(instID);
 			try {
 				DbSource.get().removePool(instID);

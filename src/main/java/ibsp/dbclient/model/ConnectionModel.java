@@ -2,7 +2,7 @@ package ibsp.dbclient.model;
 
 import ibsp.common.utils.CONSTS;
 import ibsp.common.utils.DES3;
-import ibsp.dbclient.config.DbConfig;
+import ibsp.common.utils.IBSPConfig;
 import ibsp.dbclient.exception.DBException;
 import ibsp.dbclient.exception.DBException.DBERRINFO;
 
@@ -28,7 +28,7 @@ public class ConnectionModel {
 	private HikariDataSource dataSource = null;
 	
 	public ConnectionModel(String id, String address) {
-		DbConfig properties = DbConfig.get();
+		IBSPConfig properties = IBSPConfig.getInstance();
 		String url = CONSTS.JDBC_HEADER+address+"/"+properties.getDbName();
 		if (!properties.getDbProperties().isEmpty()) {
 			url += "?"+properties.getDbProperties();
@@ -36,22 +36,22 @@ public class ConnectionModel {
 		
 		hikariConf = new HikariConfig();
 		hikariConf.setPoolName(id);
-		hikariConf.setDriverClassName(properties.getDriver());
+		hikariConf.setDriverClassName(properties.getDbDriver());
 		hikariConf.setJdbcUrl(url);
-		hikariConf.setUsername(properties.getUsername());
-		hikariConf.setPassword(DES3.decrypt(properties.getPassword()));
-		hikariConf.setMaximumPoolSize(properties.getMaxPoolSize());
-		hikariConf.setMinimumIdle(properties.getMinPoolSize());
+		hikariConf.setUsername(properties.getDbUsername());
+		hikariConf.setPassword(DES3.decrypt(properties.getDbPassword()));
+		hikariConf.setMaximumPoolSize(properties.getDbMaxPoolSize());
+		hikariConf.setMinimumIdle(properties.getDbMinPoolSize());
 		
-		hikariConf.setConnectionTimeout(properties.getConnectionTimeout());
-		hikariConf.setIdleTimeout(properties.getMaxIdleTime());
-		hikariConf.setMaxLifetime(properties.getMaxLifetime());
-		hikariConf.setValidationTimeout(properties.getValidationTimeout());
-		hikariConf.setLeakDetectionThreshold(properties.getIdleConnectionTestPeriod());
-		hikariConf.setConnectionTestQuery(properties.getConnectionTestQuery());
-		hikariConf.setAutoCommit(properties.isAutoCommit());
+		hikariConf.setConnectionTimeout(properties.getDbConnectionTimeout());
+		hikariConf.setIdleTimeout(properties.getDbMaxIdleTime());
+		hikariConf.setMaxLifetime(properties.getDbMaxLifetime());
+		hikariConf.setValidationTimeout(properties.getDbValidationTimeout());
+		hikariConf.setLeakDetectionThreshold(properties.getDbIdleConnectionTestPeriod());
+		hikariConf.setConnectionTestQuery(properties.getDbConnectionTestQuery());
+		hikariConf.setAutoCommit(properties.DbIsAutoCommit());
 		
-		testQuery = properties.getConnectionTestQuery();
+		testQuery = properties.getDbConnectionTestQuery();
 		
 		initDataSource();
 	}

@@ -1,6 +1,6 @@
 package ibsp.dbclient;
 
-import ibsp.dbclient.config.DbConfig;
+import ibsp.common.utils.IBSPConfig;
 import ibsp.dbclient.config.MetasvrConfigFactory;
 import ibsp.dbclient.exception.DBException;
 import ibsp.dbclient.exception.DBException.DBERRINFO;
@@ -59,7 +59,7 @@ public class DbSource {
 		validIdList = new ArrayList<String>();
 		invalidIdList = new ArrayList<String>();
 		
-		String rootUrls = DbConfig.get().getMetaSvrRootUrl();
+		String rootUrls = IBSPConfig.getInstance().getMetasvrUrl();
 		MetasvrConfigFactory config = MetasvrConfigFactory.getInstance(rootUrls);
 		
 		//init hikari pools
