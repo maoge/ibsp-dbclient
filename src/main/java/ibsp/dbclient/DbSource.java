@@ -114,6 +114,8 @@ public class DbSource {
 			
 			dbsource = null;
 		}
+		
+		MetasvrConfigFactory.getInstance().close();
 	}
 	
 	public ConnectionPool getPool() throws DBException {

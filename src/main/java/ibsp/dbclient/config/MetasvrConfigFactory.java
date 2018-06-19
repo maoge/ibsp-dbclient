@@ -13,11 +13,13 @@ import com.alibaba.fastjson.JSONObject;
 import ibsp.common.events.EventController;
 import ibsp.common.events.EventSubscriber;
 import ibsp.common.events.EventType;
+import ibsp.common.utils.BasicOperation;
 import ibsp.common.utils.CONSTS;
 import ibsp.common.utils.HttpUtils;
 import ibsp.common.utils.IBSPConfig;
 import ibsp.common.utils.MetasvrUrlConfig;
 import ibsp.common.utils.SVarObject;
+import ibsp.common.utils.StringUtils;
 import ibsp.dbclient.DbSource;
 import ibsp.dbclient.exception.DBException;
 import ibsp.dbclient.exception.DBException.DBERRINFO;
@@ -100,6 +102,21 @@ public class MetasvrConfigFactory implements EventSubscriber {
 		default:
 			break;
 		}
+	}
+	
+	@Override
+	public void doCompute() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void doReport() {
+		String lsnrAddr = EventController.getInstance().getLsnrAddr();
+		if (StringUtils.isNullOrEmtpy(lsnrAddr))
+			return;
+		
+		BasicOperation.putClientStatisticInfo("cureuprapapa", lsnrAddr, CONSTS.TYPE_DB_CLIENT);
 	}
 	
 	private void addDbAddress(String servID, String instID, String address) {
