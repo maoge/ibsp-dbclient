@@ -52,7 +52,6 @@ public class MetasvrConfigFactory implements EventSubscriber {
 	}
 	
 	private MetasvrConfigFactory(String url) throws DBException {
-		MetasvrUrlConfig.init(url);
 		EventController.getInstance().subscribe(CONSTS.TYPE_DB_CLIENT, this);
 		
 		this.dbAddress = new HashMap<String, String>();
