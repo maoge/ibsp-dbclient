@@ -61,10 +61,10 @@ public class MetasvrConfigFactory implements EventSubscriber {
 		if (serviceID==null || serviceID.isEmpty()) {
 			throw new DBException("serviceID is empty!", new Throwable(), DBERRINFO.e1);
 		}
-		String initUrl = String.format("%s/%s/%s?%s", MetasvrUrlConfig.get().getNextUrl(), 
-				CONSTS.TIDB_SERVICE, CONSTS.FUN_GET_ADDRESS, "SERV_ID=" + serviceID);
+		
 		SVarObject sVarInvoke = new SVarObject();
-		boolean retInvoke = HttpUtils.getData(initUrl, sVarInvoke);
+		boolean retInvoke = BasicOperation.getTidbInfoByService(serviceID, sVarInvoke);
+		
 		if (retInvoke) {
 			JSONObject jsonObj = JSONObject.parseObject(sVarInvoke.getVal());
 			if (jsonObj.getIntValue(CONSTS.JSON_HEADER_RET_CODE) == CONSTS.REVOKE_OK) {

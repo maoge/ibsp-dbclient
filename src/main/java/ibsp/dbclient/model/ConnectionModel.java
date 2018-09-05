@@ -51,6 +51,8 @@ public class ConnectionModel {
 		hikariConf.setConnectionTestQuery(properties.getDbConnectionTestQuery());
 		hikariConf.setAutoCommit(properties.DbIsAutoCommit());
 		
+		hikariConf.setLeakDetectionThreshold(300000);
+		
 		testQuery = properties.getDbConnectionTestQuery();
 		
 		initDataSource();
