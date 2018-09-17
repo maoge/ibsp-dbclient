@@ -21,6 +21,9 @@ public class ConnectionModel {
 	
 	private static final Logger logger = LoggerFactory.getLogger(ConnectionModel.class);
 	
+	private static final String DRIVER_MYSQL = "mysql";
+	private static final String DRIVER_POSTGRES = "postgresql";
+	
 	private boolean isOpen = false;
 	private String testQuery;
 	
@@ -29,9 +32,16 @@ public class ConnectionModel {
 	
 	public ConnectionModel(String id, String address) {
 		IBSPConfig properties = IBSPConfig.getInstance();
-		String url = CONSTS.JDBC_HEADER+address+"/"+properties.getDbName();
-		if (!properties.getDbProperties().isEmpty()) {
-			url += "?"+properties.getDbProperties();
+		
+		String url = null;
+		String driver = properties.getDbDriver();
+		if (driver.indexOf(DRIVER_MYSQL) != -1) {
+			url = CONSTS.JDBC_HEADER+address+"/"+properties.getDbName();
+			if (!properties.getDbProperties().isEmpty()) {
+				url += "?"+properties.getDbProperties();
+			}
+		} else if (driver.indexOf(DRIVER_POSTGRES) != -1) {
+			url = "jdbc:postgresql://"+address+"/"+properties.getDbName();
 		}
 		
 		hikariConf = new HikariConfig();

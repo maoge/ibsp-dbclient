@@ -6,6 +6,9 @@ import java.util.Vector;
 import java.util.concurrent.atomic.AtomicLong;
 
 import ibsp.common.utils.PropertiesUtils;
+import ibsp.dbclient.DbSource;
+import ibsp.dbclient.exception.DBException;
+import ibsp.dbclient.pool.ConnectionPool;
 
 public class BenchSkeleton {
 	
@@ -44,6 +47,14 @@ public class BenchSkeleton {
 			return;
 		}
 		
+		try {
+			DbSource.get().getPool();
+			Thread.sleep(1000);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return;
+		}
+		
 		normalCntVec = new AtomicLong[paralle];
 		errorCntVec = new AtomicLong[paralle];
 		for (int i = 0; i < paralle; i++) {
@@ -55,7 +66,7 @@ public class BenchSkeleton {
 		Statistic stat = new Statistic(flag, maxTPS, normalCntVec, errorCntVec);
 		
 		long start = System.currentTimeMillis();
-		Vector<Thread> workerThreads = new Vector<Thread>(paralle);
+		Vector<RunnerSkeleton> workerThreads = new Vector<RunnerSkeleton>(paralle);
 		
 		// start bench worker
 		for (int idx = 0; idx < paralle; idx++) {
@@ -68,7 +79,7 @@ public class BenchSkeleton {
 			t.setName(name);
 			t.start();
 			
-			workerThreads.add(t);
+			workerThreads.add((RunnerSkeleton) runner);
 		}
 		
 		
@@ -78,14 +89,22 @@ public class BenchSkeleton {
 		}
 		
 		
-		for (Thread t : workerThreads) {
-			if (t.isAlive()) {
-				t.join();
-			}
+		for (Runnable r : workerThreads) {
+			RunnerSkeleton runner = (RunnerSkeleton) r;
+			runner.stopRunning();
 		}
 		
-		
 		stat.StopRunning();
+		
+		try {
+			ConnectionPool pool = DbSource.get().getPool();
+			pool.close();
+		} catch (DBException e) {
+			e.printStackTrace();
+			return;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public static void main(String[] args) {

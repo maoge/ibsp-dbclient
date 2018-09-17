@@ -25,7 +25,8 @@ public abstract class RunnerSkeleton implements Runnable {
 	public void run() {
 		while (isRunning()) {
 			if (doWork()) {
-				normalCnt.incrementAndGet();
+				//normalCnt.incrementAndGet();
+				normalCnt.addAndGet(100);
 			} else {
 				errorCnt.incrementAndGet();
 			}

@@ -6,6 +6,7 @@
 	<property file="version.properties" />
 	<property environment="env" />
 	<property name="src.dir" value="${basedir}/src/main/java" />
+	<property name="test.dir" value="${basedir}/src/main/test" />
 	<property name="resource.dir" value="${basedir}/src/main/resource" />
 	<property name="build.dir" value="${basedir}/build" />
 	<property name="output.dir" value="${basedir}/output" />
@@ -36,6 +37,11 @@
 			<compilerarg line="-encoding UTF-8"/>
 			<classpath refid="project.classpath" />
 		</javac>
+		
+        <javac srcdir="${test.dir}" destdir="${build.dir}" debug="on" includeantruntime="on">
+            <compilerarg line="-encoding UTF-8"/>
+            <classpath refid="project.classpath" />
+        </javac>
 	</target>
 
 	<target name="copy">
@@ -55,6 +61,17 @@
 				<attribute name="Conf-Path" value="resource/conf"/>
 			</manifest>
 		</jar>
+		
+        <jar jarfile="${output.dir}/test.jar">
+            <fileset dir="${build.dir}">
+                <include name="*"/>
+                <include name="bench/*"/>
+            </fileset>
+	            
+            <manifest>
+                <attribute name="Main-Class" value="" />
+            </manifest>
+         </jar>
 
 	</target>
 </project>
