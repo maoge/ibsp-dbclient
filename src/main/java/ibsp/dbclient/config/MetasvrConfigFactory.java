@@ -15,7 +15,6 @@ import ibsp.common.events.EventSubscriber;
 import ibsp.common.events.EventType;
 import ibsp.common.utils.BasicOperation;
 import ibsp.common.utils.CONSTS;
-import ibsp.common.utils.HttpUtils;
 import ibsp.common.utils.IBSPConfig;
 import ibsp.common.utils.MetasvrUrlConfig;
 import ibsp.common.utils.SVarObject;
@@ -32,6 +31,7 @@ public class MetasvrConfigFactory implements EventSubscriber {
 	private static Logger logger = LoggerFactory.getLogger(MetasvrConfigFactory.class);
 	private static final ReentrantLock monitor = new ReentrantLock();
 	private static MetasvrConfigFactory instance = null;
+	private String serviceID = null;
 	
 	private Map<String, String> dbAddress;
 
@@ -57,7 +57,7 @@ public class MetasvrConfigFactory implements EventSubscriber {
 		this.dbAddress = new HashMap<String, String>();
 		
 		//process tidb addresses
-		String serviceID = IBSPConfig.getInstance().getDbServiceID();
+		serviceID = IBSPConfig.getInstance().getDbServiceID();
 		if (serviceID==null || serviceID.isEmpty()) {
 			throw new DBException("serviceID is empty!", new Throwable(), DBERRINFO.e1);
 		}
@@ -115,7 +115,7 @@ public class MetasvrConfigFactory implements EventSubscriber {
 		if (StringUtils.isNullOrEmtpy(lsnrAddr))
 			return;
 		
-		BasicOperation.putClientStatisticInfo("cureuprapapa", lsnrAddr, CONSTS.TYPE_DB_CLIENT);
+		BasicOperation.putClientStatisticInfo("", lsnrAddr, CONSTS.TYPE_DB_CLIENT, serviceID);
 	}
 	
 	private void addDbAddress(String servID, String instID, String address) {
